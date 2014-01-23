@@ -1,0 +1,32 @@
+JAN
+	- Farbiges Objekt (Interpolation)
+	- Transparentes Objekt
+	- Texturen
+		- Ebene mit Texturen
+		- Hintergrund mit Textur (Erst platt, dann sphärisch)
+		- Objekt (z. B. Verkehrsschield, oder Wall)
+		- versch. Filter
+	- Aufwändigeres Objekt: 
+		- Einbindung eines obj-Files (Blender)
+	- Kollisionserkennung
+	- NURBS
+
+	
+FRIEDRICH
+	- Objekt
+	- Beleuchtung
+		- Direktionales Licht
+		- Punktlichtquelle
+	- Knight Rider-Light (Animierte Textur)
+	- Kollisionserkennung (Über Brücke fahren)
+	- Animierte Textur
+	
+
+FRANK
+	- Aufwändigeres Objekt: Auto
+		- mehrere Bestandteile
+		- bewegliche Räder
+		- ausklappbare Lichter
+		- Lichtquelle
+	- Bewegliche Kamera
+	- Zoom
