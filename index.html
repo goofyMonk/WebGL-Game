@@ -118,6 +118,7 @@
     var mvMatrix = mat4.create();
     var mvMatrixStack = [];
     var pMatrix = mat4.create();
+    var mvMatrixCube = mat4.create();
 
     function mvPushMatrix() {
         var copy = mat4.create();
@@ -357,8 +358,8 @@
     }
 
 
-    var cubeXPosition = -3;
-    var cubeZPosition = 0;
+    var cubeRotation = 0;
+    var cubeTranslation = 0;
 
     var currentlyPressedKeys = {};
 
@@ -373,22 +374,37 @@
 
 
     function handleKeys() {
+        var speed = 0.25;
+        var turningSensitivity = 3;
+    
         if (currentlyPressedKeys[37]) {
             // Left cursor key
-            cubeXPosition -= 0.1;
-        }
-        if (currentlyPressedKeys[39]) {
+            mat4.rotate(mvMatrixCube, degToRad(turningSensitivity), [0, 1, 0]);
+         }
+         
+         if (currentlyPressedKeys[39]) {
             // Right cursor key
-            cubeXPosition += 0.1;
-        }
-        if (currentlyPressedKeys[38]) {
+            mat4.rotate(mvMatrixCube, degToRad(-turningSensitivity), [0, 1, 0]);
+         }
+         
+         if (currentlyPressedKeys[38]) {
             // Up cursor key
-            cubeZPosition -= 0.1;
-        }
-        if (currentlyPressedKeys[40]) {
+            mat4.translate(mvMatrixCube, [speed, 0, 0]);
+         }
+         
+         if (currentlyPressedKeys[40]) {
             // Down cursor key
-            cubeZPosition += 0.1;
-        }
+            mat4.translate(mvMatrixCube, [-speed, 0, 0]);
+         }
+    }
+    
+    // Ausrichtung der Welt (bzw. der Kamera)
+    function initMVMatrices() {     
+        mat4.identity(mvMatrix);
+        mat4.rotate(mvMatrix, degToRad(45), [1, 0, 0]);
+        mat4.translate(mvMatrix, [0, -14.0, -12.0]);
+        
+        mvMatrixCube = mvMatrix;
     }
 
 
@@ -398,15 +414,10 @@
 
         mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
 
-
-        // Ausrichtung der Welt (bzw. der Kamera)
-        mat4.identity(mvMatrix);
-        mat4.rotate(mvMatrix, degToRad(45), [1, 0, 0]);
-        mat4.translate(mvMatrix, [0, -11.0, -12.0]);
-
         // CUBE-Ausrichtung
         mvPushMatrix();
-        mat4.translate(mvMatrix, [cubeXPosition, 0, cubeZPosition]);
+        mvMatrix = mvMatrixCube;
+ 
         gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
         gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, cubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -422,7 +433,7 @@
 
         // WALL-Ausrichtung
         mvPushMatrix();
-        mat4.translate(mvMatrix, [2, 0, 0]);
+        mat4.translate(mvMatrix, [5, 0, 0]);
         gl.bindBuffer(gl.ARRAY_BUFFER, wallVertexPositionBuffer);
         gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, wallVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -437,7 +448,7 @@
     }
 
 
-        function tick() {
+    function tick() {
         requestAnimFrame(tick);
         handleKeys();
 
@@ -450,13 +461,14 @@
         initGL(canvas);
         initShaders();
         initBuffers();
+        initMVMatrices();
 
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.enable(gl.DEPTH_TEST);
 
         document.onkeydown = handleKeyDown;
         document.onkeyup = handleKeyUp;
-
+        
         tick();
     }
 </script>
