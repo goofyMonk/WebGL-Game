@@ -118,8 +118,8 @@
     var mvMatrix = mat4.create();
     var mvMatrixStack = [];
     var pMatrix = mat4.create();
-    var mvMatrixCube = mat4.create();
-    var mvMatrixCubeStack = [];
+    var mvMatrixCar = mat4.create();
+    var mvMatrixCarStack = [];
 
     function mvPushMatrix() {
         var copy = mat4.create();
@@ -136,24 +136,24 @@
     }
     
     
-    function mvCubePushMatrix() {
+    function mvPushMatrixCar() {
         var copy = mat4.create();
-        mat4.set(mvMatrixCube, copy);
-        mvMatrixCubeStack.push(copy);
+        mat4.set(mvMatrixCar, copy);
+        mvMatrixCarStack.push(copy);
     }
 
 
-    function mvCubePopMatrix() {
-        if (mvMatrixCubeStack.length == 0) {
+    function mvPopMatrixCar() {
+        if (mvMatrixCarStack.length == 0) {
             throw "Invalid popMatrix!";
         }
-        mvMatrixCube = mvMatrixCubeStack.pop();
+        mvMatrixCar = mvMatrixCarStack.pop();
     }
 
 
-    function setMatrixUniforms() {
+    function setMatrixUniforms(currentMvMatrix) {
         gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
-        gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
+        gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, currentMvMatrix);
     }
 
     var cubeVertexPositionBuffer;
@@ -163,9 +163,10 @@
 
     function initBuffers() {
 
-    // CUBE
-        cubeVertexPositionBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
+        // CAR - BOTTOM-CUBE
+        // Bottom-Cube Vertex-Positions
+        bottomCubeVertexPositionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, bottomCubeVertexPositionBuffer);
         var vertices = [
             // Front face
             -1.0, -0.2,  0.5,
@@ -204,12 +205,13 @@
             -1.0,  0.2, -0.5
         ];
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-        cubeVertexPositionBuffer.itemSize = 3;
-        cubeVertexPositionBuffer.numItems = 24;
+        bottomCubeVertexPositionBuffer.itemSize = 3;
+        bottomCubeVertexPositionBuffer.numItems = 24;
 
-        cubeVertexIndexBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
-        var cubeVertexIndices = [
+        // Bottom-Cube Indices
+        bottomCubeVertexIndexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, bottomCubeVertexIndexBuffer);
+        var bottomCubeVertexIndices = [
             0, 1, 2,      0, 2, 3,    // Front face
             4, 5, 6,      4, 6, 7,    // Back face
             8, 9, 10,     8, 10, 11,  // Top face
@@ -217,13 +219,13 @@
             16, 17, 18,   16, 18, 19, // Right face
             20, 21, 22,   20, 22, 23  // Left face
         ];
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cubeVertexIndices), gl.STATIC_DRAW);
-        cubeVertexIndexBuffer.itemSize = 1;
-        cubeVertexIndexBuffer.numItems = 36;
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(bottomCubeVertexIndices), gl.STATIC_DRAW);
+        bottomCubeVertexIndexBuffer.itemSize = 1;
+        bottomCubeVertexIndexBuffer.numItems = 36;
 
-        //Cube color
-        cubeVertexColorBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexColorBuffer);
+        // Bottom-Cube Color
+        bottomCubeVertexColorBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, bottomCubeVertexColorBuffer);
         var colors = [
             // Front face color
              1.0, 0.0,  0.0, 1.0,
@@ -262,10 +264,11 @@
              0.0, 1.0,  1.0, 1.0
         ];
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-        cubeVertexColorBuffer.itemSize = 4;
-        cubeVertexColorBuffer.numItems = 24;
+        bottomCubeVertexColorBuffer.itemSize = 4;
+        bottomCubeVertexColorBuffer.numItems = 24;
         
         // CAR - TOP-CUBE
+        // Top-Cube Vertex-Positions
         topCubeVertexPositionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, topCubeVertexPositionBuffer);
         var vertices = [
@@ -309,6 +312,7 @@
         topCubeVertexPositionBuffer.itemSize = 3;
         topCubeVertexPositionBuffer.numItems = 24;
 
+        // Top-Cube Indices
         topCubeVertexIndexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, topCubeVertexIndexBuffer);
         var topCubeVertexIndices = [
@@ -323,7 +327,7 @@
         topCubeVertexIndexBuffer.itemSize = 1;
         topCubeVertexIndexBuffer.numItems = 36;
 
-        //topCube color
+        // Top-Cube Color
         topCubeVertexColorBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, topCubeVertexColorBuffer);
         var colors = [
@@ -368,6 +372,7 @@
         topCubeVertexColorBuffer.numItems = 24;
 
         // WALL
+        // Wall Vertex-Positions
         wallVertexPositionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, wallVertexPositionBuffer);
         var vertices = [
@@ -411,6 +416,7 @@
         wallVertexPositionBuffer.itemSize = 3;
         wallVertexPositionBuffer.numItems = 24;
 
+        // Wall Indices
         wallVertexIndexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wallVertexIndexBuffer);
         var wallVertexIndices = [
@@ -425,7 +431,7 @@
         wallVertexIndexBuffer.itemSize = 1;
         wallVertexIndexBuffer.numItems = 36;
 
-        //Wall color
+        // Wall Color
         wallVertexColorBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, wallVertexColorBuffer);
         var colors = [
@@ -494,32 +500,34 @@
     
         if (currentlyPressedKeys[37]) {
             // Left cursor key
-            mat4.rotate(mvMatrixCube, degToRad(turningSensitivity), [0, 1, 0]);
+            mat4.rotate(mvMatrixCar, degToRad(turningSensitivity), [0, 1, 0]);
          }
          
          if (currentlyPressedKeys[39]) {
             // Right cursor key
-            mat4.rotate(mvMatrixCube, degToRad(-turningSensitivity), [0, 1, 0]);
+            mat4.rotate(mvMatrixCar, degToRad(-turningSensitivity), [0, 1, 0]);
          }
          
          if (currentlyPressedKeys[38]) {
             // Up cursor key
-            mat4.translate(mvMatrixCube, [speed, 0, 0]);
+            mat4.translate(mvMatrixCar, [speed, 0, 0]);
          }
          
          if (currentlyPressedKeys[40]) {
             // Down cursor key
-            mat4.translate(mvMatrixCube, [-speed, 0, 0]);
+            mat4.translate(mvMatrixCar, [-speed, 0, 0]);
          }
     }
     
-    // Ausrichtung der Welt (bzw. der Kamera)
-    function initMVMatrices() {     
+    
+    function initMatrices() {     
         mat4.identity(mvMatrix);
         mat4.rotate(mvMatrix, degToRad(45), [1, 0, 0]);
         mat4.translate(mvMatrix, [0, -14.0, -12.0]);
         
-        mvMatrixCube = mvMatrix;
+        mvMatrixCar = mvMatrix;
+        
+        mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
     }
 
 
@@ -527,60 +535,60 @@
         gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
-
-        // AUTO-Ausrichtung
-        mvPushMatrix();
-            
-            mvCubePushMatrix();     // CUBE
-            
-                gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
-                gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, cubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-                //Color on the Cube
-                gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexColorBuffer);
-                gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, cubeVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
-                mvMatrix = mvMatrixCube;
-                setMatrixUniforms();
-                gl.drawElements(gl.TRIANGLES, cubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-                
-            mvCubePopMatrix();
-            
-            mvCubePushMatrix();     // TOP-CUBE
-            
-                mat4.translate(mvMatrixCube, [-0.3, 0.4, 0]);
-                
-                gl.bindBuffer(gl.ARRAY_BUFFER, topCubeVertexPositionBuffer);
-                gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, topCubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-                //Color on the topCube
-                gl.bindBuffer(gl.ARRAY_BUFFER, topCubeVertexColorBuffer);
-                gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, topCubeVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, topCubeVertexIndexBuffer);
-                mvMatrix = mvMatrixCube;
-                setMatrixUniforms();
-                gl.drawElements(gl.TRIANGLES, topCubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-                
-            mvCubePopMatrix();
+        // CAR
+        mvPushMatrixCar();     // BOTTOM-CUBE
         
-        mvPopMatrix();
+            // Vertex-Positions
+            gl.bindBuffer(gl.ARRAY_BUFFER, bottomCubeVertexPositionBuffer);
+            gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, bottomCubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        // WALL-Ausrichtung
-        mvPushMatrix();
+            // Color
+            gl.bindBuffer(gl.ARRAY_BUFFER, bottomCubeVertexColorBuffer);
+            gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, bottomCubeVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+            // Indices
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, bottomCubeVertexIndexBuffer);
+            
+            setMatrixUniforms(mvMatrixCar);
+            gl.drawElements(gl.TRIANGLES, bottomCubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+            
+        mvPopMatrixCar();
         
+        mvPushMatrixCar();     // TOP-CUBE
+        
+            mat4.translate(mvMatrixCar, [-0.3, 0.4, 0]);
+            
+            // Vertex-Positions
+            gl.bindBuffer(gl.ARRAY_BUFFER, topCubeVertexPositionBuffer);
+            gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, topCubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+            // Color
+            gl.bindBuffer(gl.ARRAY_BUFFER, topCubeVertexColorBuffer);
+            gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, topCubeVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+            // Indices
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, topCubeVertexIndexBuffer);
+            setMatrixUniforms(mvMatrixCar);
+            
+            gl.drawElements(gl.TRIANGLES, topCubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+            
+        mvPopMatrixCar();
+        
+        // WALL
+        mvPushMatrix();
+            // Vertex-Positions
             mat4.translate(mvMatrix, [5, 0, 0]);
             gl.bindBuffer(gl.ARRAY_BUFFER, wallVertexPositionBuffer);
             gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, wallVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-            //Color on the Wall
+            // Color
             gl.bindBuffer(gl.ARRAY_BUFFER, wallVertexColorBuffer);
             gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, wallVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
+            // Indices
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wallVertexIndexBuffer);
-            setMatrixUniforms();
+            setMatrixUniforms(mvMatrix);
+            
             gl.drawElements(gl.TRIANGLES, wallVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
             
         mvPopMatrix();
@@ -600,7 +608,7 @@
         initGL(canvas);
         initShaders();
         initBuffers();
-        initMVMatrices();
+        initMatrices();
 
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.enable(gl.DEPTH_TEST);
