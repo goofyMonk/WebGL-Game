@@ -626,6 +626,31 @@
             mat4.translate(mvMatrixCar, [-speed, 0, 0]);
             wheelRotation += wheelRotationSpeed;
          }
+         
+         
+         
+         if (currentlyPressedKeys[87]) {
+            // W
+         }
+         
+         if (currentlyPressedKeys[65]) {
+            // A
+         }
+         
+         if (currentlyPressedKeys[83]) {
+            // S
+         }
+         
+         if (currentlyPressedKeys[68]) {
+            // D
+         }
+         
+         
+         
+         
+         
+         
+         
     }
     
     
@@ -657,13 +682,13 @@
             // Indices
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, bottomCubeVertexIndexBuffer);
             
+            mat4.translate(mvMatrixCar, [0 , 0.1, 0]);
             setMatrixUniforms(mvMatrixCar);
+            
             gl.drawElements(gl.TRIANGLES, bottomCubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
         mvPopMatrixCar();
         
         mvPushMatrixCar();     // CAR - TOP-CUBE
-            mat4.translate(mvMatrixCar, [-0.3, 0.4, 0]);
-            
             // Vertex-Positions
             gl.bindBuffer(gl.ARRAY_BUFFER, topCubeVertexPositionBuffer);
             gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, topCubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -674,6 +699,8 @@
 
             // Indices
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, topCubeVertexIndexBuffer);
+            
+            mat4.translate(mvMatrixCar, [-0.3, 0.5, 0]);
             setMatrixUniforms(mvMatrixCar);
             
             gl.drawElements(gl.TRIANGLES, topCubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
@@ -726,7 +753,6 @@
         // WALL
         mvPushMatrix();
             // Vertex-Positions
-            mat4.translate(mvMatrix, [5, 0, 0]);
             gl.bindBuffer(gl.ARRAY_BUFFER, wallVertexPositionBuffer);
             gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, wallVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -736,6 +762,8 @@
 
             // Indices
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wallVertexIndexBuffer);
+            
+            mat4.translate(mvMatrix, [5, 0, 0]);
             setMatrixUniforms(mvMatrix);
             
             gl.drawElements(gl.TRIANGLES, wallVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
