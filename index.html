@@ -370,6 +370,110 @@
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
         topCubeVertexColorBuffer.itemSize = 4;
         topCubeVertexColorBuffer.numItems = 24;
+        
+        // CAR - WHEEL
+        // Wheel Vertex-Positions
+        wheelVertexPositionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, wheelVertexPositionBuffer);
+        var vertices = [
+            // Front face
+            -0.2, -0.2,  0.1,
+             0.2, -0.2,  0.1,
+             0.2,  0.2,  0.1,
+            -0.2,  0.2,  0.1,
+
+            // Back face
+            -0.2, -0.2, -0.1,
+            -0.2,  0.2, -0.1,
+             0.2,  0.2, -0.1,
+             0.2, -0.2, -0.1,
+
+            // Top face
+            -0.2,  0.2, -0.1,
+            -0.2,  0.2,  0.1,
+             0.2,  0.2,  0.1,
+             0.2,  0.2, -0.1,
+
+            // Bottom face
+            -0.2, -0.2, -0.1,
+             0.2, -0.2, -0.1,
+             0.2, -0.2,  0.1,
+            -0.2, -0.2,  0.1,
+
+            // Right face
+             0.2, -0.2, -0.1,
+             0.2,  0.2, -0.1,
+             0.2,  0.2,  0.1,
+             0.2, -0.2,  0.1,
+
+            // Left face
+            -0.2, -0.2, -0.1,
+            -0.2, -0.2,  0.1,
+            -0.2,  0.2,  0.1,
+            -0.2,  0.2, -0.1
+        ];
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+        wheelVertexPositionBuffer.itemSize = 3;
+        wheelVertexPositionBuffer.numItems = 24;
+
+        // Wheel Indices
+        wheelVertexIndexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wheelVertexIndexBuffer);
+        var wheelVertexIndices = [
+            0, 1, 2,      0, 2, 3,    // Front face
+            4, 5, 6,      4, 6, 7,    // Back face
+            8, 9, 10,     8, 10, 11,  // Top face
+            12, 13, 14,   12, 14, 15, // Bottom face
+            16, 17, 18,   16, 18, 19, // Right face
+            20, 21, 22,   20, 22, 23  // Left face
+        ];
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(wheelVertexIndices), gl.STATIC_DRAW);
+        wheelVertexIndexBuffer.itemSize = 1;
+        wheelVertexIndexBuffer.numItems = 36;
+
+        // Wheel Color
+        wheelVertexColorBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, wheelVertexColorBuffer);
+        var colors = [
+            // Front face color
+             0.5, 0.0, 1.0, 1.0,
+             0.5, 0.0, 1.0, 1.0,
+             0.5, 0.0, 0.0, 1.0,
+             0.5, 0.0, 0.0, 1.0,
+
+            // Back face color
+             0.5, 0.0, 1.0, 1.0,
+             0.5, 0.0, 1.0, 1.0,
+             0.5, 0.0, 0.0, 1.0,
+             0.5, 0.0, 0.0, 1.0,
+
+            // Top face color
+             0.5, 0.0, 1.0, 1.0,
+             0.5, 0.0, 1.0, 1.0,
+             0.5, 0.0, 0.0, 1.0,
+             0.5, 0.0, 0.0, 1.0,
+
+            // Bottom face color
+             0.5, 0.0, 1.0, 1.0,
+             0.5, 0.0, 1.0, 1.0,
+             0.5, 0.0, 0.0, 1.0,
+             0.5, 0.0, 0.0, 1.0,
+
+            // Right face color
+             0.5, 0.0, 1.0, 1.0,
+             0.5, 0.0, 1.0, 1.0,
+             0.5, 0.0, 0.0, 1.0,
+             0.5, 0.0, 0.0, 1.0,
+
+            // Left face color
+             0.5, 0.0, 1.0, 1.0,
+             0.5, 0.0, 1.0, 1.0,
+             0.5, 0.0, 0.0, 1.0,
+             0.5, 0.0, 0.0, 1.0,
+        ];
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+        wheelVertexColorBuffer.itemSize = 4;
+        wheelVertexColorBuffer.numItems = 24;
 
         // WALL
         // Wall Vertex-Positions
@@ -536,8 +640,7 @@
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         // CAR
-        mvPushMatrixCar();     // BOTTOM-CUBE
-        
+        mvPushMatrixCar();     // CAR - BOTTOM-CUBE
             // Vertex-Positions
             gl.bindBuffer(gl.ARRAY_BUFFER, bottomCubeVertexPositionBuffer);
             gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, bottomCubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -551,11 +654,9 @@
             
             setMatrixUniforms(mvMatrixCar);
             gl.drawElements(gl.TRIANGLES, bottomCubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-            
         mvPopMatrixCar();
         
-        mvPushMatrixCar();     // TOP-CUBE
-        
+        mvPushMatrixCar();     // CAR - TOP-CUBE
             mat4.translate(mvMatrixCar, [-0.3, 0.4, 0]);
             
             // Vertex-Positions
@@ -571,9 +672,52 @@
             setMatrixUniforms(mvMatrixCar);
             
             gl.drawElements(gl.TRIANGLES, topCubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-            
         mvPopMatrixCar();
         
+        mvPushMatrixCar();     // CAR - WHEELS
+            // Vertex-Positions
+            gl.bindBuffer(gl.ARRAY_BUFFER, wheelVertexPositionBuffer);
+            gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, wheelVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+            // Color
+            gl.bindBuffer(gl.ARRAY_BUFFER, wheelVertexColorBuffer);
+            gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, wheelVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+            // Indices
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wheelVertexIndexBuffer);
+            
+            mat4.translate(mvMatrixCar, [0.7, 0, 0.6]);
+            mat4.rotate(mvMatrixCar, degToRad(45), [0, 0, 1]);
+            setMatrixUniforms(mvMatrixCar);
+            
+            gl.drawElements(gl.TRIANGLES, wheelVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+        mvPopMatrixCar();
+        
+        mvPushMatrixCar();
+            mat4.translate(mvMatrixCar, [-0.7, 0, 0.6]);
+            mat4.rotate(mvMatrixCar, degToRad(45), [0, 0, 1]);
+            setMatrixUniforms(mvMatrixCar);
+            
+            gl.drawElements(gl.TRIANGLES, wheelVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+        mvPopMatrixCar();
+        
+        mvPushMatrixCar();
+            mat4.translate(mvMatrixCar, [-0.7, 0, -0.6]);
+            mat4.rotate(mvMatrixCar, degToRad(45), [0, 0, 1]);
+            setMatrixUniforms(mvMatrixCar);
+            
+            gl.drawElements(gl.TRIANGLES, wheelVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+        mvPopMatrixCar();
+        
+        mvPushMatrixCar();
+            mat4.translate(mvMatrixCar, [0.7, 0, -0.6]);
+            mat4.rotate(mvMatrixCar, degToRad(45), [0, 0, 1]);
+            setMatrixUniforms(mvMatrixCar);
+            
+            gl.drawElements(gl.TRIANGLES, wheelVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+        mvPopMatrixCar();
+        
+
         // WALL
         mvPushMatrix();
             // Vertex-Positions
@@ -590,7 +734,6 @@
             setMatrixUniforms(mvMatrix);
             
             gl.drawElements(gl.TRIANGLES, wallVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-            
         mvPopMatrix();
     }
 
