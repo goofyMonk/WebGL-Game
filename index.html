@@ -597,10 +597,13 @@
         currentlyPressedKeys[event.keyCode] = false;
     }
 
+    
+    var wheelRotation = 0;
 
     function handleKeys() {
         var speed = 0.2;
         var turningSensitivity = 2;
+        var wheelRotationSpeed = 14;
     
         if (currentlyPressedKeys[37]) {
             // Left cursor key
@@ -615,11 +618,13 @@
          if (currentlyPressedKeys[38]) {
             // Up cursor key
             mat4.translate(mvMatrixCar, [speed, 0, 0]);
+            wheelRotation -= wheelRotationSpeed;
          }
          
          if (currentlyPressedKeys[40]) {
             // Down cursor key
             mat4.translate(mvMatrixCar, [-speed, 0, 0]);
+            wheelRotation += wheelRotationSpeed;
          }
     }
     
@@ -687,7 +692,7 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wheelVertexIndexBuffer);
             
             mat4.translate(mvMatrixCar, [0.7, 0, 0.6]);
-            mat4.rotate(mvMatrixCar, degToRad(45), [0, 0, 1]);
+            mat4.rotate(mvMatrixCar, degToRad(wheelRotation), [0, 0, 1]);
             setMatrixUniforms(mvMatrixCar);
             
             gl.drawElements(gl.TRIANGLES, wheelVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
@@ -695,7 +700,7 @@
         
         mvPushMatrixCar();
             mat4.translate(mvMatrixCar, [-0.7, 0, 0.6]);
-            mat4.rotate(mvMatrixCar, degToRad(45), [0, 0, 1]);
+            mat4.rotate(mvMatrixCar, degToRad(wheelRotation), [0, 0, 1]);
             setMatrixUniforms(mvMatrixCar);
             
             gl.drawElements(gl.TRIANGLES, wheelVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
@@ -703,7 +708,7 @@
         
         mvPushMatrixCar();
             mat4.translate(mvMatrixCar, [-0.7, 0, -0.6]);
-            mat4.rotate(mvMatrixCar, degToRad(45), [0, 0, 1]);
+            mat4.rotate(mvMatrixCar, degToRad(wheelRotation), [0, 0, 1]);
             setMatrixUniforms(mvMatrixCar);
             
             gl.drawElements(gl.TRIANGLES, wheelVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
@@ -711,7 +716,7 @@
         
         mvPushMatrixCar();
             mat4.translate(mvMatrixCar, [0.7, 0, -0.6]);
-            mat4.rotate(mvMatrixCar, degToRad(45), [0, 0, 1]);
+            mat4.rotate(mvMatrixCar, degToRad(wheelRotation), [0, 0, 1]);
             setMatrixUniforms(mvMatrixCar);
             
             gl.drawElements(gl.TRIANGLES, wheelVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
