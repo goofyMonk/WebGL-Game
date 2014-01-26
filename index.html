@@ -678,8 +678,8 @@
             mat4.translate(mvMatrix, [0, -cameraSpeed, 0]);
          }
          
-         if (currentlyPressedKeys[17]) {
-            // Ctrl
+         if (currentlyPressedKeys[16]) {
+            // Shift
             mat4.rotate(mvMatrixCar, degToRad(-carRotation), [0, 1, 0]);
             mat4.translate(mvMatrixCar, [0, cameraSpeed, 0]);
             mat4.rotate(mvMatrixCar, degToRad(carRotation), [0, 1, 0]);
@@ -854,12 +854,13 @@
 </head>
 
 <body onload="webGLStart();">
-        <h1>WebGL-Game</h1>
+        <h1>WebGL Car Drive</h1>
     <canvas id="lesson01-canvas" style="border: none;" width="800" height="600"></canvas>
-        <h2>Instructions:</h2>
+        <h2>Controls:</h2>
     <ul>
-        <li>Use cursor keys to move the cube.
-        <li>Walk through the magic wall.
+        <li>Use cursor keys to move the car.
+        <li>Use W, A, S, D, shift, space to move the camera.
+        <li>Use page up and page down to zoom in and out.
     </ul>
 </body>
 
