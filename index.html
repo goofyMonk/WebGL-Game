@@ -636,10 +636,10 @@
          if (currentlyPressedKeys[87]) {
             // W
             mat4.rotate(mvMatrixCar, degToRad(-carRotation), [0, 1, 0]);
-            mat4.translate(mvMatrixCar, [0, cameraSpeed, cameraSpeed]);
+            mat4.translate(mvMatrixCar, [0, 0, cameraSpeed]);
             mat4.rotate(mvMatrixCar, degToRad(carRotation), [0, 1, 0]);
             
-            mat4.translate(mvMatrix, [0, cameraSpeed, cameraSpeed]);
+            mat4.translate(mvMatrix, [0, 0, cameraSpeed]);
          }
          
          if (currentlyPressedKeys[65]) {
@@ -654,10 +654,10 @@
          if (currentlyPressedKeys[83]) {
             // S
             mat4.rotate(mvMatrixCar, degToRad(-carRotation), [0, 1, 0]);
-            mat4.translate(mvMatrixCar, [0, -cameraSpeed, -cameraSpeed]);
+            mat4.translate(mvMatrixCar, [0, 0, -cameraSpeed]);
             mat4.rotate(mvMatrixCar, degToRad(carRotation), [0, 1, 0]);
-
-            mat4.translate(mvMatrix, [0, -cameraSpeed, -cameraSpeed]);
+            
+            mat4.translate(mvMatrix, [0, 0, -cameraSpeed]);
          }
          
          if (currentlyPressedKeys[68]) {
@@ -667,6 +667,42 @@
             mat4.rotate(mvMatrixCar, degToRad(carRotation), [0, 1, 0]);
             
             mat4.translate(mvMatrix, [-cameraSpeed, 0, 0]);
+         }
+         
+         if (currentlyPressedKeys[32]) {
+            // Space
+            mat4.rotate(mvMatrixCar, degToRad(-carRotation), [0, 1, 0]);
+            mat4.translate(mvMatrixCar, [0, -cameraSpeed, 0]);
+            mat4.rotate(mvMatrixCar, degToRad(carRotation), [0, 1, 0]);
+            
+            mat4.translate(mvMatrix, [0, -cameraSpeed, 0]);
+         }
+         
+         if (currentlyPressedKeys[17]) {
+            // Ctrl
+            mat4.rotate(mvMatrixCar, degToRad(-carRotation), [0, 1, 0]);
+            mat4.translate(mvMatrixCar, [0, cameraSpeed, 0]);
+            mat4.rotate(mvMatrixCar, degToRad(carRotation), [0, 1, 0]);
+            
+            mat4.translate(mvMatrix, [0, cameraSpeed, 0]);
+         }
+         
+         if (currentlyPressedKeys[33]) {
+            // Page up
+            mat4.rotate(mvMatrixCar, degToRad(-carRotation), [0, 1, 0]);
+            mat4.translate(mvMatrixCar, [0, cameraSpeed, cameraSpeed]);
+            mat4.rotate(mvMatrixCar, degToRad(carRotation), [0, 1, 0]);
+
+            mat4.translate(mvMatrix, [0, cameraSpeed, cameraSpeed]);
+         }
+         
+         if (currentlyPressedKeys[34]) {
+            // Page down
+            mat4.rotate(mvMatrixCar, degToRad(-carRotation), [0, 1, 0]);
+            mat4.translate(mvMatrixCar, [0, -cameraSpeed, -cameraSpeed]);
+            mat4.rotate(mvMatrixCar, degToRad(carRotation), [0, 1, 0]);
+            
+            mat4.translate(mvMatrix, [0, -cameraSpeed, -cameraSpeed]);
          }
     }
     
