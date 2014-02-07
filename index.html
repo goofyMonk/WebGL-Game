@@ -7,6 +7,8 @@
     <script type="text/javascript" src="./external/glMatrix-0.9.5.min.js"></script>
     <script type="text/javascript" src="./external/webgl-utils.js"></script>
 
+    <script src="webgl-debug.js"></script>
+
     <script id="shader-fs" type="x-shader/x-fragment">
         precision mediump float;
 
@@ -37,11 +39,14 @@
     <script id="shader-fs-texture" type="x-shader/x-fragment">
         precision mediump float;
         varying vec2 vTextureCoord;
+        varying vec3 vLightWeighting;
 
         uniform sampler2D uSampler;
 
         void main(void) {
-        gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+            //Lightning
+             vec4 textureColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+             gl_FragColor = vec4(textureColor.rgb * vLightWeighting, textureColor.a);
         }
 
     </script>
@@ -49,16 +54,35 @@
     <!--Vertex Shader for Textures-->
     <script id="shader-vs-texture" type="x-shader/x-vertex">
         attribute vec3 aVertexPosition;
+        attribute vec3 aVertexNormal;
         attribute vec2 aTextureCoord;
 
         uniform mat4 uMVMatrix;
         uniform mat4 uPMatrix;
+        uniform mat3 uNMatrix;
+
+        uniform vec3 uAmbientColor;
+
+        uniform vec3 uLightingDirection;
+        uniform vec3 uDirectionalColor; 
+        uniform bool uUseLighting;
 
         varying vec2 vTextureCoord;
 
+        varying vec3 vLightWeighting;
+
         void main(void){
-        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-        vTextureCoord = aTextureCoord;
+            gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+            vTextureCoord = aTextureCoord;
+
+            if (!uUseLighting) {
+                vLightWeighting = vec3(1.0, 1.0, 1.0);
+            }
+            else {
+                vec3 transformedNormal = uNMatrix * aVertexNormal;
+                float directionalLightWeighting = max(dot(transformedNormal, uLightingDirection), 0.0);
+                vLightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;
+            }
         }
     </script>
 
@@ -170,12 +194,27 @@
         shaderProgramTexture.vertexPositionAttribute = gl.getAttribLocation(shaderProgramTexture, "aVertexPosition");
         gl.enableVertexAttribArray(shaderProgramTexture.vertexPositionAttribute);
 
+        //Lightning
+        shaderProgramTexture.vertexNormalAttribute = gl.getAttribLocation(shaderProgram, "aVertexNormal");
+        gl.enableVertexAttribArray(shaderProgram.vertexNormalAttribute);
+
         shaderProgramTexture.textureCoordAttribute = gl.getAttribLocation(shaderProgramTexture, "aTextureCoord");
         gl.enableVertexAttribArray(shaderProgramTexture.textureCoordAttribute);
 
         shaderProgramTexture.pMatrixUniform = gl.getUniformLocation(shaderProgramTexture, "uPMatrix");
         shaderProgramTexture.mvMatrixUniform = gl.getUniformLocation(shaderProgramTexture, "uMVMatrix");
+        shaderProgram.nMatrixUniform = gl.getUniformLocation(shaderProgram, "uNMatrix");
         shaderProgramTexture.samplerUniform = gl.getUniformLocation(shaderProgramTexture, "uSampler");
+
+        shaderProgram.useLightingUniform = gl.getUniformLocation(shaderProgram, "uUseLighting");
+        shaderProgram.ambientColorUniform = gl.getUniformLocation(shaderProgram, "uAmbientColor");
+        shaderProgram.lightingDirectionUniform = gl.getUniformLocation(shaderProgram, "uLightingDirection");
+        shaderProgram.directionalColorUniform = gl.getUniformLocation(shaderProgram, "uDirectionalColor");
+
+
+
+
+
     }
       
     function handleLoadedTexture(texture) {
@@ -196,6 +235,7 @@
     function initTexture() {
         wallTexture = gl.createTexture();
         wallTexture.image = new Image();
+        wallTexture.image.crossOrigin = "anonymous";
         wallTexture.image.onload = function () {
             handleLoadedTexture(wallTexture)
         }
@@ -256,9 +296,18 @@
         gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
         gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, currentMvMatrix);
     }
+
     function setMatrixUniformsTexture(currentMvMatrix) {
         gl.uniformMatrix4fv(shaderProgramTexture.pMatrixUniform, false, pMatrix);
         gl.uniformMatrix4fv(shaderProgramTexture.mvMatrixUniform, false, currentMvMatrix);
+
+        //Lightning
+        //Transform normals _ Use transported inverse of top-left 3x3 mvMatrix
+        var normalMatrix = mat3.create();
+        mat4.toInverseMat3(mvMatrix, normalMatrix);
+        mat3.transpose(normalMatrix);
+        gl.uniformMatrix3fv(shaderProgram.nMatrixUniform, false, normalMatrix);
+
     }
 
     var cubeVertexPositionBuffer;
@@ -625,6 +674,52 @@
         wallVertexPositionBuffer.itemSize = 3;
         wallVertexPositionBuffer.numItems = 24;
 
+        //WALL Vertex Normal
+        wallVertexNormalBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, wallVertexNormalBuffer);
+        var vertexNormals = [
+            // Front face
+             0.0,  0.0,  1.0,
+             0.0,  0.0,  1.0,
+             0.0,  0.0,  1.0,
+             0.0,  0.0,  1.0,
+
+            // Back face
+             0.0,  0.0, -1.0,
+             0.0,  0.0, -1.0,
+             0.0,  0.0, -1.0,
+             0.0,  0.0, -1.0,
+
+            // Top face
+             0.0,  1.0,  0.0,
+             0.0,  1.0,  0.0,
+             0.0,  1.0,  0.0,
+             0.0,  1.0,  0.0,
+
+            // Bottom face
+             0.0, -1.0,  0.0,
+             0.0, -1.0,  0.0,
+             0.0, -1.0,  0.0,
+             0.0, -1.0,  0.0,
+
+            // Right face
+             1.0,  0.0,  0.0,
+             1.0,  0.0,  0.0,
+             1.0,  0.0,  0.0,
+             1.0,  0.0,  0.0,
+
+            // Left face
+            -1.0,  0.0,  0.0,
+            -1.0,  0.0,  0.0,
+            -1.0,  0.0,  0.0,
+            -1.0,  0.0,  0.0
+        ];
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals), gl.STATIC_DRAW);
+        wallVertexNormalBuffer.itemSize = 3;
+        wallVertexNormalBuffer.numItems = 24;
+
+
+
         //Texture Coords
         wallVertexTextureCoordBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, wallVertexTextureCoordBuffer);
@@ -988,6 +1083,9 @@
             //  gl.bindBuffer(gl.ARRAY_BUFFER, wallVertexColorBuffer);
             // gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, wallVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
             
+            //TODO: Wall Normals
+            gl.bindBuffer(gl.ARRAY_BUFFER, wallVertexNormalBuffer);
+            gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, wallVertexNormalBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
             //Texture
             gl.bindBuffer(gl.ARRAY_BUFFER, wallVertexTextureCoordBuffer);
@@ -1010,6 +1108,37 @@
             //gl.bindTexture(gl.TEXTURE_2D, wallTexture);
             gl.uniform1i(shaderProgramTexture.samplerUniform, 0);
 
+
+            //TODO: LIGHTNING
+            var lighting = document.getElementById("lighting").checked;
+            gl.uniform1i(shaderProgram.useLightingUniform, lighting);
+            if (lighting) {
+                gl.uniform3f(
+                    shaderProgram.ambientColorUniform,
+                    parseFloat(document.getElementById("ambientR").value),
+                    parseFloat(document.getElementById("ambientG").value),
+                    parseFloat(document.getElementById("ambientB").value)
+                );
+
+                var lightingDirection = [
+                    parseFloat(document.getElementById("lightDirectionX").value),
+                    parseFloat(document.getElementById("lightDirectionY").value),
+                    parseFloat(document.getElementById("lightDirectionZ").value)
+                ];
+                var adjustedLD = vec3.create();
+                vec3.normalize(lightingDirection, adjustedLD);
+                vec3.scale(adjustedLD, -1);
+                gl.uniform3fv(shaderProgram.lightingDirectionUniform, adjustedLD);
+
+                gl.uniform3f(
+                    shaderProgram.directionalColorUniform,
+                    parseFloat(document.getElementById("directionalR").value),
+                    parseFloat(document.getElementById("directionalG").value),
+                    parseFloat(document.getElementById("directionalB").value)
+                );
+            } 
+
+
             // Indices
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wallVertexIndexBuffer);
             
@@ -1017,6 +1146,8 @@
             setMatrixUniformsTexture(mvMatrix);
             //setMatrixUniforms(mvMatrix);
             gl.drawElements(gl.TRIANGLES, wallVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+        
+
         mvPopMatrix();
     }
 
@@ -1038,6 +1169,8 @@
         }, false);
     
         var canvas = document.getElementById("WebGL Car Drive");
+        //DEBUG
+        ctx = WebGLDebugUtils.makeDebugContext(canvas.getContext("webgl"));
         initGL(canvas);
         initShadersColor();
         initShadersTexture();
@@ -1067,6 +1200,38 @@
         <li>Use page up and page down to zoom in and out.
         <li>Use T for selecting different Textures for the wall.
     </ul>
+    <br>
+    <input type="checkbox" id="lighting" checked /> Use lighting
+    <br/>
+   <br/>
+    <h2>Directional light:</h2>
+
+    <table style="border: 0; padding: 10px;">
+        <tr>
+            <td><b>Direction:</b>
+            <td>X: <input type="text" id="lightDirectionX" value="-0.25" />
+            <td>Y: <input type="text" id="lightDirectionY" value="-0.25" />
+            <td>Z: <input type="text" id="lightDirectionZ" value="-1.0" />
+        </tr>
+        <tr>
+            <td><b>Colour:</b>
+            <td>R: <input type="text" id="directionalR" value="0.8" />
+            <td>G: <input type="text" id="directionalG" value="0.8" />
+            <td>B: <input type="text" id="directionalB" value="0.8" />
+        </tr>
+    </table>
+
+    <h2>Ambient light:</h2>
+    <table style="border: 0; padding: 10px;">
+        <tr>
+            <td><b>Colour:</b>
+            <td>R: <input type="text" id="ambientR" value="0.2" />
+            <td>G: <input type="text" id="ambientG" value="0.2" />
+            <td>B: <input type="text" id="ambientB" value="0.2" />
+        </tr>
+    </table>
+
+
 </body>
 
 </html>
