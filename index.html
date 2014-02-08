@@ -181,8 +181,9 @@
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); //Change for different Filters now MipMapping
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST); //Change for different Filters now MipMapping
+        gl.generateMipmap(gl.TEXTURE_2D); //Change for different Filters now MipMapping
         gl.bindTexture(gl.TEXTURE_2D, null);
     }
 
@@ -195,7 +196,7 @@
         handleLoadedTexture(wallTexture)
         }
 
-        wallTexture.image.src = "wall2.jpg";
+        wallTexture.image.src = "b2.jpg"; //Change for different texture
     }
 
     var mvMatrix = mat4.create();
