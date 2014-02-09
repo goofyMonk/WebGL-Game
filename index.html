@@ -9,31 +9,54 @@
 
     <script src="webgl-debug.js"></script>
 
+
+    <!--Fragment Shader for Color-->   
     <script id="shader-fs" type="x-shader/x-fragment">
         precision mediump float;
-
         varying vec4 vColor;
+        varying vec3 vLightWeighting;
 
         void main(void) {
-        gl_FragColor = vColor;
+            gl_FragColor = vec4(vColor.rgb * vLightWeighting, vColor.a);
         }
     </script>
 
+    <!--Vertex Shader for Color-->
     <script id="shader-vs" type="x-shader/x-vertex">
         attribute vec3 aVertexPosition;
+        attribute vec3 aVertexNormal;
         attribute vec4 aVertexColor;
 
         uniform mat4 uMVMatrix;
         uniform mat4 uPMatrix;
+        uniform mat3 uNMatrix;
 
-        varying vec4 vColor; //sending varing variables to vertex shader
+        uniform vec3 uAmbientColor;
 
+        uniform vec3 uLightingDirection;
+        uniform vec3 uDirectionalColor; 
+        uniform bool uUseLighting;
 
-        void main(void) {
-        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-        vColor = aVertexColor;
+        varying vec4 vColor;
+
+        varying vec3 vLightWeighting;
+
+        void main(void) {            
+            gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+            vColor = aVertexColor;
+
+            if (!uUseLighting) {
+                vLightWeighting = vec3(1.0, 1.0, 1.0);
+            }
+            else {
+                vec3 transformedNormal = uNMatrix * aVertexNormal;
+                float directionalLightWeighting = max(dot(transformedNormal, uLightingDirection), 0.0);
+                vLightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;
+            }
         }
     </script>
+
+
 
     <!--Fragment Shader for Textures-->
     <script id="shader-fs-texture" type="x-shader/x-fragment">
@@ -44,7 +67,7 @@
         uniform sampler2D uSampler;
 
         void main(void) {
-            //Lightning
+            //Lighting
              vec4 textureColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
              gl_FragColor = vec4(textureColor.rgb * vLightWeighting, textureColor.a);
         }
@@ -166,8 +189,18 @@
         shaderProgram.vertexColorAttribute = gl.getAttribLocation(shaderProgram, "aVertexColor");
         gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);        //getting the color-attributes
 
+        //Lighting
+        shaderProgram.vertexNormalAttribute = gl.getAttribLocation(shaderProgram, "aVertexNormal");
+        gl.enableVertexAttribArray(shaderProgram.vertexNormalAttribute);
+
         shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
         shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+        shaderProgram.nMatrixUniform = gl.getUniformLocation(shaderProgram, "uNMatrix");
+
+        shaderProgram.useLightingUniform = gl.getUniformLocation(shaderProgram, "uUseLighting");
+        shaderProgram.ambientColorUniform = gl.getUniformLocation(shaderProgram, "uAmbientColor");
+        shaderProgram.lightingDirectionUniform = gl.getUniformLocation(shaderProgram, "uLightingDirection");
+        shaderProgram.directionalColorUniform = gl.getUniformLocation(shaderProgram, "uDirectionalColor");
     }
 
 /* Init Shaders for Texture */
@@ -210,11 +243,6 @@
         shaderProgramTexture.ambientColorUniform = gl.getUniformLocation(shaderProgramTexture, "uAmbientColor");
         shaderProgramTexture.lightingDirectionUniform = gl.getUniformLocation(shaderProgramTexture, "uLightingDirection");
         shaderProgramTexture.directionalColorUniform = gl.getUniformLocation(shaderProgramTexture, "uDirectionalColor");
-
-
-
-
-
     }
       
     function handleLoadedTexture(texture) {
@@ -295,13 +323,20 @@
     function setMatrixUniforms(currentMvMatrix) {
         gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
         gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, currentMvMatrix);
+
+        //Lighting
+        //Transform normals _ Use transported inverse of top-left 3x3 mvMatrix
+        var normalMatrix = mat3.create();
+        mat4.toInverseMat3(mvMatrix, normalMatrix);
+        mat3.transpose(normalMatrix);
+        gl.uniformMatrix3fv(shaderProgram.nMatrixUniform, false, normalMatrix);
     }
 
     function setMatrixUniformsTexture(currentMvMatrix) {
         gl.uniformMatrix4fv(shaderProgramTexture.pMatrixUniform, false, pMatrix);
         gl.uniformMatrix4fv(shaderProgramTexture.mvMatrixUniform, false, currentMvMatrix);
 
-        //Lightning
+        //Lighting
         //Transform normals _ Use transported inverse of top-left 3x3 mvMatrix
         var normalMatrix = mat3.create();
         mat4.toInverseMat3(mvMatrix, normalMatrix);
@@ -361,6 +396,52 @@
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
         bottomCubeVertexPositionBuffer.itemSize = 3;
         bottomCubeVertexPositionBuffer.numItems = 24;
+
+
+        //Bottom-Cube Vertex Normal
+        bottomCubeVertexNormalBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, bottomCubeVertexNormalBuffer);
+        var vertexNormals = [
+            // Front face
+             0.0,  0.0,  1.0,
+             0.0,  0.0,  1.0,
+             0.0,  0.0,  1.0,
+             0.0,  0.0,  1.0,
+
+            // Back face
+             0.0,  0.0, -1.0,
+             0.0,  0.0, -1.0,
+             0.0,  0.0, -1.0,
+             0.0,  0.0, -1.0,
+
+            // Top face
+             0.0,  1.0,  0.0,
+             0.0,  1.0,  0.0,
+             0.0,  1.0,  0.0,
+             0.0,  1.0,  0.0,
+
+            // Bottom face
+             0.0, -1.0,  0.0,
+             0.0, -1.0,  0.0,
+             0.0, -1.0,  0.0,
+             0.0, -1.0,  0.0,
+
+            // Right face
+             1.0,  0.0,  0.0,
+             1.0,  0.0,  0.0,
+             1.0,  0.0,  0.0,
+             1.0,  0.0,  0.0,
+
+            // Left face
+            -1.0,  0.0,  0.0,
+            -1.0,  0.0,  0.0,
+            -1.0,  0.0,  0.0,
+            -1.0,  0.0,  0.0
+        ];
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals), gl.STATIC_DRAW);
+        bottomCubeVertexNormalBuffer.itemSize = 3;
+        bottomCubeVertexNormalBuffer.numItems = 24;
+
 
         // Bottom-Cube Indices
         bottomCubeVertexIndexBuffer = gl.createBuffer();
@@ -466,6 +547,52 @@
         topCubeVertexPositionBuffer.itemSize = 3;
         topCubeVertexPositionBuffer.numItems = 24;
 
+
+        //Top-Cube Vertex Normal
+        topCubeVertexNormalBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, topCubeVertexNormalBuffer);
+        var vertexNormals = [
+            // Front face
+             0.0,  0.0,  1.0,
+             0.0,  0.0,  1.0,
+             0.0,  0.0,  1.0,
+             0.0,  0.0,  1.0,
+
+            // Back face
+             0.0,  0.0, -1.0,
+             0.0,  0.0, -1.0,
+             0.0,  0.0, -1.0,
+             0.0,  0.0, -1.0,
+
+            // Top face
+             0.0,  1.0,  0.0,
+             0.0,  1.0,  0.0,
+             0.0,  1.0,  0.0,
+             0.0,  1.0,  0.0,
+
+            // Bottom face
+             0.0, -1.0,  0.0,
+             0.0, -1.0,  0.0,
+             0.0, -1.0,  0.0,
+             0.0, -1.0,  0.0,
+
+            // Right face
+             1.0,  0.0,  0.0,
+             1.0,  0.0,  0.0,
+             1.0,  0.0,  0.0,
+             1.0,  0.0,  0.0,
+
+            // Left face
+            -1.0,  0.0,  0.0,
+            -1.0,  0.0,  0.0,
+            -1.0,  0.0,  0.0,
+            -1.0,  0.0,  0.0
+        ];
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals), gl.STATIC_DRAW);
+        topCubeVertexNormalBuffer.itemSize = 3;
+        topCubeVertexNormalBuffer.numItems = 24;
+
+
         // Top-Cube Indices
         topCubeVertexIndexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, topCubeVertexIndexBuffer);
@@ -569,6 +696,52 @@
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
         wheelVertexPositionBuffer.itemSize = 3;
         wheelVertexPositionBuffer.numItems = 24;
+
+
+        //Wheel Vertex Normal
+        wheelVertexNormalBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, wheelVertexNormalBuffer);
+        var vertexNormals = [
+            // Front face
+             0.0,  0.0,  1.0,
+             0.0,  0.0,  1.0,
+             0.0,  0.0,  1.0,
+             0.0,  0.0,  1.0,
+
+            // Back face
+             0.0,  0.0, -1.0,
+             0.0,  0.0, -1.0,
+             0.0,  0.0, -1.0,
+             0.0,  0.0, -1.0,
+
+            // Top face
+             0.0,  1.0,  0.0,
+             0.0,  1.0,  0.0,
+             0.0,  1.0,  0.0,
+             0.0,  1.0,  0.0,
+
+            // Bottom face
+             0.0, -1.0,  0.0,
+             0.0, -1.0,  0.0,
+             0.0, -1.0,  0.0,
+             0.0, -1.0,  0.0,
+
+            // Right face
+             1.0,  0.0,  0.0,
+             1.0,  0.0,  0.0,
+             1.0,  0.0,  0.0,
+             1.0,  0.0,  0.0,
+
+            // Left face
+            -1.0,  0.0,  0.0,
+            -1.0,  0.0,  0.0,
+            -1.0,  0.0,  0.0,
+            -1.0,  0.0,  0.0
+        ];
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals), gl.STATIC_DRAW);
+        wheelVertexNormalBuffer.itemSize = 3;
+        wheelVertexNormalBuffer.numItems = 24;
+
 
         // Wheel Indices
         wheelVertexIndexBuffer = gl.createBuffer();
@@ -1071,6 +1244,41 @@
             gl.drawElements(gl.TRIANGLES, wheelVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
         mvPopMatrixCar();
         
+
+            //Color-Lighting
+            var lighting = document.getElementById("lighting").checked;
+            gl.uniform1i(shaderProgram.useLightingUniform, lighting);
+
+            if (lighting) {
+                //Lighting for Texture Shaders
+                gl.uniform3f(
+                    shaderProgram.ambientColorUniform,
+                    parseFloat(document.getElementById("ambientR").value),
+                    parseFloat(document.getElementById("ambientG").value),
+                    parseFloat(document.getElementById("ambientB").value)
+                );
+
+                var lightingDirection = [
+                    parseFloat(document.getElementById("lightDirectionX").value),
+                    parseFloat(document.getElementById("lightDirectionY").value),
+                    parseFloat(document.getElementById("lightDirectionZ").value)
+                ];
+                var adjustedLD = vec3.create();
+                vec3.normalize(lightingDirection, adjustedLD);
+                vec3.scale(adjustedLD, -1);
+                gl.uniform3fv(shaderProgram.lightingDirectionUniform, adjustedLD);
+
+                gl.uniform3f(
+                    shaderProgram.directionalColorUniform,
+                    parseFloat(document.getElementById("directionalR").value),
+                    parseFloat(document.getElementById("directionalG").value),
+                    parseFloat(document.getElementById("directionalB").value)
+                );
+            } 
+
+
+
+
         gl.useProgram(shaderProgramTexture);
         
           // WALL
@@ -1083,7 +1291,7 @@
             //  gl.bindBuffer(gl.ARRAY_BUFFER, wallVertexColorBuffer);
             // gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, wallVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
             
-            //TODO: Wall Normals
+            //Normals
             gl.bindBuffer(gl.ARRAY_BUFFER, wallVertexNormalBuffer);
             gl.vertexAttribPointer(shaderProgramTexture.vertexNormalAttribute, wallVertexNormalBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -1109,10 +1317,12 @@
             gl.uniform1i(shaderProgramTexture.samplerUniform, 0);
 
 
-            //TODO: LIGHTNING
+            //Texture-Lighting
             var lighting = document.getElementById("lighting").checked;
             gl.uniform1i(shaderProgramTexture.useLightingUniform, lighting);
+
             if (lighting) {
+                //Lighting for Texture Shaders
                 gl.uniform3f(
                     shaderProgramTexture.ambientColorUniform,
                     parseFloat(document.getElementById("ambientR").value),
@@ -1170,7 +1380,7 @@
     
         var canvas = document.getElementById("WebGL Car Drive");
         //DEBUG
-        ctx = WebGLDebugUtils.makeDebugContext(canvas.getContext("webgl"));
+        //ctx = WebGLDebugUtils.makeDebugContext(canvas.getContext("webgl"));
         initGL(canvas);
         initShadersColor();
         initShadersTexture();
