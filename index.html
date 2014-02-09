@@ -7,7 +7,7 @@
     <script type="text/javascript" src="./external/glMatrix-0.9.5.min.js"></script>
     <script type="text/javascript" src="./external/webgl-utils.js"></script>
 
-    <script src="webgl-debug.js"></script>
+    <script type="text/javascript" src="./external/webgl-debug.js"></script>
 
 
     <!--Fragment Shader for Color-->   
@@ -345,9 +345,24 @@
 
     }
 
-    var cubeVertexPositionBuffer;
-    var cubeVertexColorBuffer;
+    var bottomCubeVertexPositionBuffer;
+    var bottomCubeVertexNormalBuffer;
+    var bottomCubeVertexIndexBuffer;
+    var bottomCubeVertexColorBuffer;
+
+    var topCubeVertexPositionBuffer;
+    var topCubeVertexNormalBuffer;
+    var topCubeVertexIndexBuffer;
+    var topCubeVertexColorBuffer;  
+
+    var wheelVertexPositionBuffer;
+    var wheelVertexNormalBuffer;
+    var wheelVertexIndexBuffer;
+    var wheelVertexColorBuffer;
+
     var wallVertexPositionBuffer;
+    var wallVertexNormalBuffer;
+    var wallVertexIndexBuffer;
     var wallVertexTextureCoordBuffer;
 
     function initBuffers() {
@@ -1110,7 +1125,7 @@
             mat4.rotate(mvMatrixCar, degToRad(-carRotation), [0, 1, 0]);
             mat4.translate(mvMatrixCar, [0, cameraSpeed, 0]);
             mat4.rotate(mvMatrixCar, degToRad(carRotation), [0, 1, 0]);
-            
+
             mat4.translate(mvMatrix, [0, cameraSpeed, 0]);
          }
          
