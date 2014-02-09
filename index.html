@@ -7,7 +7,7 @@
     <script type="text/javascript" src="./external/glMatrix-0.9.5.min.js"></script>
     <script type="text/javascript" src="./external/webgl-utils.js"></script>
 
-    <script type="text/javascript" src="./external/webgl-debug.js"></script>
+    <script src="webgl-debug.js"></script>
 
 
     <!--Fragment Shader for Color-->   
@@ -113,7 +113,9 @@
     <script type="text/javascript">
 
         var gl;
-        var textureSelect=0; //var for Textureselection
+        var textureSelect = 0; //var for Textureselection
+        var textureSelectFloor = 0; //var for Floor texture
+
 
     function initGL(canvas) {
         try {
@@ -258,6 +260,9 @@
     var wallTexture;    //global var for wall Texture
     var wallTextureTwo;
     var wallTextureThree;
+    var floorTexture;    //global var for floor Texture
+    var floorTextureTwo;
+    var floorTextureThree;
 
     //different Textures in different global var´s
     function initTexture() {
@@ -278,11 +283,30 @@
         handleLoadedTexture(wallTextureThree)
         }
         
+        floorTexture = gl.createTexture();
+        floorTexture.image = new Image();
+        floorTexture.image.onload = function () {
+            handleLoadedTexture(floorTexture)
+        }
+        floorTextureTwo = gl.createTexture();
+        floorTextureTwo.image = new Image();
+        floorTextureTwo.image.onload = function () {
+            handleLoadedTexture(floorTextureTwo)
+        }
+        floorTextureThree = gl.createTexture();
+        floorTextureThree.image = new Image();
+        floorTextureThree.image.onload = function () {
+            handleLoadedTexture(floorTextureThree)
+        }
+
         wallTexture.image.src = "./textures/b2.jpg"; //Change for different texture
         wallTextureTwo.image.src = "./textures/b1.jpg"; //Change for different texture
         wallTextureThree.image.src = "./textures/es1.jpg"; //Change for different texture
-            
-        }
+
+        floorTexture.image.src = "./textures/track_1.jpg"; //Change for different texture
+        floorTextureTwo.image.src = "./textures/track_2.jpg"; //Change for different texture
+        floorTextureThree.image.src = "./textures/track_4.jpg"; //Change for different texture
+    }
         
     var mvMatrix = mat4.create();
     var mvMatrixStack = [];
@@ -345,25 +369,18 @@
 
     }
 
-    var bottomCubeVertexPositionBuffer;
-    var bottomCubeVertexNormalBuffer;
-    var bottomCubeVertexIndexBuffer;
-    var bottomCubeVertexColorBuffer;
-
-    var topCubeVertexPositionBuffer;
-    var topCubeVertexNormalBuffer;
-    var topCubeVertexIndexBuffer;
-    var topCubeVertexColorBuffer;  
-
-    var wheelVertexPositionBuffer;
-    var wheelVertexNormalBuffer;
-    var wheelVertexIndexBuffer;
-    var wheelVertexColorBuffer;
-
+    //Position Buffers
+    var cubeVertexPositionBuffer;
     var wallVertexPositionBuffer;
-    var wallVertexNormalBuffer;
-    var wallVertexIndexBuffer;
+    var floorVertexPositionBuffer;
+
+    //Color Buffers
+    var cubeVertexColorBuffer;
+
+
+    //Texture Buffers
     var wallVertexTextureCoordBuffer;
+    var floorVertexTextureCoordBuffer;
 
     function initBuffers() {
 
@@ -906,8 +923,6 @@
         wallVertexNormalBuffer.itemSize = 3;
         wallVertexNormalBuffer.numItems = 24;
 
-
-
         //Texture Coords
         wallVertexTextureCoordBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, wallVertexTextureCoordBuffer);
@@ -1010,7 +1025,77 @@
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
         wallVertexColorBuffer.itemSize = 4;
         wallVertexColorBuffer.numItems = 24;*/
-    } 
+
+        // FLOOR
+        // Floor Vertex-Positions
+        floorVertexPositionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, floorVertexPositionBuffer);
+        var vertices = [
+            // Floor
+            -30.0, 0.0, -30.0,
+            30.0, 0.0, -30.0,
+            30.0, 0.0, 30.0,
+            -30.0, 0.0, 30.0,
+
+        ];
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+        floorVertexPositionBuffer.itemSize = 3;
+        floorVertexPositionBuffer.numItems = 4;
+
+        // Floor Indices
+        floorVertexIndexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, floorVertexIndexBuffer);
+        var floorVertexIndices = [
+            0, 1, 2, 0, 2, 3,    // Floor face
+
+        ];
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(floorVertexIndices), gl.STATIC_DRAW);
+        floorVertexIndexBuffer.itemSize = 1;
+        floorVertexIndexBuffer.numItems = 6;
+        
+        //Floor Vertex Normal
+        floorVertexNormalBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, floorVertexNormalBuffer);
+        var vertexNormals = [
+            // Front face
+             0.0, 0.0, 1.0,
+             0.0, 0.0, 1.0,
+             0.0, 0.0, 1.0,
+             0.0, 0.0, 1.0
+        ];
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals), gl.STATIC_DRAW);
+        floorVertexNormalBuffer.itemSize = 3;
+        floorVertexNormalBuffer.numItems = 4;
+
+        /* // Floor Color
+         floorVertexColorBuffer = gl.createBuffer();
+         gl.bindBuffer(gl.ARRAY_BUFFER, floorVertexColorBuffer);
+         var colors = [
+             // Floor face color
+              0.5, 0.0, 1.0, 1.0,
+              0.5, 0.0, 1.0, 1.0,
+              0.5, 0.0, 0.0, 1.0,
+              0.5, 0.0, 0.0, 1.0,
+         ];
+         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+         floorVertexColorBuffer.itemSize = 4;
+         floorVertexColorBuffer.numItems = 4; */
+
+        //Floor Texture Coords
+        floorVertexTextureCoordBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, floorVertexTextureCoordBuffer);
+        var textureCoords = [
+          // Front face
+          0.0, 0.0,
+          1.0, 0.0,
+          1.0, 1.0,
+          0.0, 1.0
+        ];
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
+        floorVertexTextureCoordBuffer.itemSize = 2;
+        floorVertexTextureCoordBuffer.numItems = 4;
+
+    }
 
 
     function degToRad(degrees) {
@@ -1027,9 +1112,19 @@
         if (String.fromCharCode(event.keyCode) == "T") {
             textureSelect++;
             //alert(textureSelect); //Alert for testing key pressed
-           
+
             if (textureSelect == 3) {
                 textureSelect = 0;
+            }
+        }
+
+        //Key F changes Floor Texture
+        if (String.fromCharCode(event.keyCode) == "T") {
+            textureSelectFloor++;
+            //alert(textureSelect); //Alert for testing key pressed
+
+            if (textureSelectFloor == 3) {
+                textureSelectFloor = 0;
             }
         }
     }
@@ -1125,7 +1220,7 @@
             mat4.rotate(mvMatrixCar, degToRad(-carRotation), [0, 1, 0]);
             mat4.translate(mvMatrixCar, [0, cameraSpeed, 0]);
             mat4.rotate(mvMatrixCar, degToRad(carRotation), [0, 1, 0]);
-
+            
             mat4.translate(mvMatrix, [0, cameraSpeed, 0]);
          }
          
@@ -1331,8 +1426,61 @@
             //gl.bindTexture(gl.TEXTURE_2D, wallTexture);
             gl.uniform1i(shaderProgramTexture.samplerUniform, 0);
 
+            // Indices
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wallVertexIndexBuffer);
+            
+            mat4.translate(mvMatrix, [5, 0, 0]);
+            setMatrixUniformsTexture(mvMatrix);
+            //setMatrixUniforms(mvMatrix);
+            gl.drawElements(gl.TRIANGLES, wallVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+        
 
-            //Texture-Lighting
+            mvPopMatrix();
+
+        // floor
+        mvPushMatrix();
+        // Vertex-Positions
+            gl.bindBuffer(gl.ARRAY_BUFFER, floorVertexPositionBuffer);
+            gl.vertexAttribPointer(shaderProgramTexture.vertexPositionAttribute, floorVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        /*
+            // Color
+            gl.bindBuffer(gl.ARRAY_BUFFER, floorVertexColorBuffer);
+            gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, floorVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            */
+
+        //Texture
+            gl.bindBuffer(gl.ARRAY_BUFFER, wallVertexTextureCoordBuffer);
+            gl.vertexAttribPointer(shaderProgramTexture.textureCoordAttribute, wallVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+            gl.activeTexture(gl.TEXTURE0);
+
+        //Texture change on binding
+            if (textureSelectFloor == 0) {
+                gl.bindTexture(gl.TEXTURE_2D, floorTexture);
+            }
+            else if (textureSelectFloor == 1) {
+                gl.bindTexture(gl.TEXTURE_2D, floorTextureTwo);
+            }
+            else if (textureSelectFloor == 2) {
+                gl.bindTexture(gl.TEXTURE_2D, floorTextureThree);
+            }
+
+
+        //gl.bindTexture(gl.TEXTURE_2D, wallTexture);
+            gl.uniform1i(shaderProgram.samplerUniform, 0);
+
+        // Indices
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, floorVertexIndexBuffer);
+
+            mat4.translate(mvMatrix, [0, 0, 0]);
+            setMatrixUniformsTexture(mvMatrix);
+
+        //setMatrixUniforms(mvMatrix);
+            gl.drawElements(gl.TRIANGLES, floorVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+       mvPopMatrix();
+
+        //Texture-Lighting
             var lighting = document.getElementById("lighting").checked;
             gl.uniform1i(shaderProgramTexture.useLightingUniform, lighting);
 
@@ -1361,19 +1509,7 @@
                     parseFloat(document.getElementById("directionalG").value),
                     parseFloat(document.getElementById("directionalB").value)
                 );
-            } 
-
-
-            // Indices
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, wallVertexIndexBuffer);
-            
-            mat4.translate(mvMatrix, [5, 0, 0]);
-            setMatrixUniformsTexture(mvMatrix);
-            //setMatrixUniforms(mvMatrix);
-            gl.drawElements(gl.TRIANGLES, wallVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-        
-
-        mvPopMatrix();
+            }
     }
 
 
@@ -1426,6 +1562,7 @@
         <li>Use W, A, S, D, shift, space to move the camera.
         <li>Use page up and page down to zoom in and out.
         <li>Use T for selecting different Textures for the wall.
+        <li>Use F for selecting a Racing-Track.
     </ul>
 
     <br>
