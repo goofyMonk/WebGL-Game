@@ -66,6 +66,7 @@
     <script type="text/javascript">
 
         var gl;
+        var textureSelect=0; //var for Textureselection
 
     function initGL(canvas) {
         try {
@@ -188,17 +189,33 @@
     }
 
     var wallTexture;    //global var for wall Texture
-    
+    var wallTextureTwo;
+    var wallTextureThree;
+
+    //different Textures in different global var´s
     function initTexture() {
         wallTexture = gl.createTexture();
         wallTexture.image = new Image();
         wallTexture.image.onload = function () {
-        handleLoadedTexture(wallTexture)
+            handleLoadedTexture(wallTexture)
         }
-
+        wallTextureTwo = gl.createTexture();
+        wallTextureTwo.image = new Image();
+        wallTextureTwo.image.onload = function () {
+            handleLoadedTexture(wallTextureTwo)
+        }
+        wallTextureThree = gl.createTexture();
+        wallTextureThree.image = new Image();
+        wallTextureThree.image.onload = function () {
+        handleLoadedTexture(wallTextureThree)
+        }
+        
         wallTexture.image.src = "./textures/b2.jpg"; //Change for different texture
-    }
-
+        wallTextureTwo.image.src = "./textures/b1.jpg"; //Change for different texture
+        wallTextureThree.image.src = "./textures/es1.jpg"; //Change for different texture
+            
+        }
+        
     var mvMatrix = mat4.create();
     var mvMatrixStack = [];
     var pMatrix = mat4.create();
@@ -722,6 +739,16 @@
 
     function handleKeyDown(event) {
         currentlyPressedKeys[event.keyCode] = true;
+
+        //Key T changes Texture
+        if (String.fromCharCode(event.keyCode) == "T") {
+            textureSelect++;
+            //alert(textureSelect); //Alert for testing key pressed
+           
+            if (textureSelect == 3) {
+                textureSelect = 0;
+            }
+        }
     }
 
 
@@ -732,7 +759,7 @@
     
     var carRotation = 0;
     var wheelRotation = 0;
-
+  
     function handleKeys() {
         var carSpeed = 0.2;
         var cameraSpeed = 0.2;
@@ -836,6 +863,16 @@
             
             mat4.translate(mvMatrix, [0, -cameraSpeed, -cameraSpeed]);
          }
+
+        /* if (currentlyPressedKeys[84]) {
+             // Key "T"
+             alert("Key T pressed!");
+             alert(textureSelect);
+             textureSelect++;
+             if (textureSelect == 3) {
+                 textureSelect = 0;
+             }
+         }*/
     }
     
     
@@ -957,7 +994,20 @@
             gl.vertexAttribPointer(shaderProgramTexture.textureCoordAttribute, wallVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
             gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, wallTexture);
+            
+            //Texture change on binding
+            if (textureSelect == 0) {
+                gl.bindTexture(gl.TEXTURE_2D, wallTexture);
+            }
+            else if (textureSelect == 1) {
+                gl.bindTexture(gl.TEXTURE_2D, wallTextureTwo);
+            }
+            else if (textureSelect == 2) {
+                gl.bindTexture(gl.TEXTURE_2D, wallTextureThree);
+            }
+            
+
+            //gl.bindTexture(gl.TEXTURE_2D, wallTexture);
             gl.uniform1i(shaderProgramTexture.samplerUniform, 0);
 
             // Indices
@@ -1015,6 +1065,7 @@
         <li>Use cursor keys to move the car.
         <li>Use W, A, S, D, shift, space to move the camera.
         <li>Use page up and page down to zoom in and out.
+        <li>Use T for selecting different Textures for the wall.
     </ul>
 </body>
 
