@@ -194,7 +194,7 @@
         shaderProgramTexture.vertexPositionAttribute = gl.getAttribLocation(shaderProgramTexture, "aVertexPosition");
         gl.enableVertexAttribArray(shaderProgramTexture.vertexPositionAttribute);
 
-        //Lightning
+        //Lighting
         shaderProgramTexture.vertexNormalAttribute = gl.getAttribLocation(shaderProgramTexture, "aVertexNormal");
         gl.enableVertexAttribArray(shaderProgramTexture.vertexNormalAttribute);
 
@@ -203,7 +203,7 @@
 
         shaderProgramTexture.pMatrixUniform = gl.getUniformLocation(shaderProgramTexture, "uPMatrix");
         shaderProgramTexture.mvMatrixUniform = gl.getUniformLocation(shaderProgramTexture, "uMVMatrix");
-        shaderProgram.nMatrixUniform = gl.getUniformLocation(shaderProgramTexture, "uNMatrix");
+        shaderProgramTexture.nMatrixUniform = gl.getUniformLocation(shaderProgramTexture, "uNMatrix");
         shaderProgramTexture.samplerUniform = gl.getUniformLocation(shaderProgramTexture, "uSampler");
 
         shaderProgramTexture.useLightingUniform = gl.getUniformLocation(shaderProgramTexture, "uUseLighting");
@@ -1085,7 +1085,7 @@
             
             //TODO: Wall Normals
             gl.bindBuffer(gl.ARRAY_BUFFER, wallVertexNormalBuffer);
-            gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, wallVertexNormalBuffer.itemSize, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(shaderProgramTexture.vertexNormalAttribute, wallVertexNormalBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
             //Texture
             gl.bindBuffer(gl.ARRAY_BUFFER, wallVertexTextureCoordBuffer);
