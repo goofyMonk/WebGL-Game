@@ -195,21 +195,21 @@
         gl.enableVertexAttribArray(shaderProgramTexture.vertexPositionAttribute);
 
         //Lightning
-        shaderProgramTexture.vertexNormalAttribute = gl.getAttribLocation(shaderProgram, "aVertexNormal");
-        gl.enableVertexAttribArray(shaderProgram.vertexNormalAttribute);
+        shaderProgramTexture.vertexNormalAttribute = gl.getAttribLocation(shaderProgramTexture, "aVertexNormal");
+        gl.enableVertexAttribArray(shaderProgramTexture.vertexNormalAttribute);
 
         shaderProgramTexture.textureCoordAttribute = gl.getAttribLocation(shaderProgramTexture, "aTextureCoord");
         gl.enableVertexAttribArray(shaderProgramTexture.textureCoordAttribute);
 
         shaderProgramTexture.pMatrixUniform = gl.getUniformLocation(shaderProgramTexture, "uPMatrix");
         shaderProgramTexture.mvMatrixUniform = gl.getUniformLocation(shaderProgramTexture, "uMVMatrix");
-        shaderProgram.nMatrixUniform = gl.getUniformLocation(shaderProgram, "uNMatrix");
+        shaderProgram.nMatrixUniform = gl.getUniformLocation(shaderProgramTexture, "uNMatrix");
         shaderProgramTexture.samplerUniform = gl.getUniformLocation(shaderProgramTexture, "uSampler");
 
-        shaderProgram.useLightingUniform = gl.getUniformLocation(shaderProgram, "uUseLighting");
-        shaderProgram.ambientColorUniform = gl.getUniformLocation(shaderProgram, "uAmbientColor");
-        shaderProgram.lightingDirectionUniform = gl.getUniformLocation(shaderProgram, "uLightingDirection");
-        shaderProgram.directionalColorUniform = gl.getUniformLocation(shaderProgram, "uDirectionalColor");
+        shaderProgramTexture.useLightingUniform = gl.getUniformLocation(shaderProgramTexture, "uUseLighting");
+        shaderProgramTexture.ambientColorUniform = gl.getUniformLocation(shaderProgramTexture, "uAmbientColor");
+        shaderProgramTexture.lightingDirectionUniform = gl.getUniformLocation(shaderProgramTexture, "uLightingDirection");
+        shaderProgramTexture.directionalColorUniform = gl.getUniformLocation(shaderProgramTexture, "uDirectionalColor");
 
 
 
@@ -306,7 +306,7 @@
         var normalMatrix = mat3.create();
         mat4.toInverseMat3(mvMatrix, normalMatrix);
         mat3.transpose(normalMatrix);
-        gl.uniformMatrix3fv(shaderProgram.nMatrixUniform, false, normalMatrix);
+        gl.uniformMatrix3fv(shaderProgramTexture.nMatrixUniform, false, normalMatrix);
 
     }
 
@@ -1111,10 +1111,10 @@
 
             //TODO: LIGHTNING
             var lighting = document.getElementById("lighting").checked;
-            gl.uniform1i(shaderProgram.useLightingUniform, lighting);
+            gl.uniform1i(shaderProgramTexture.useLightingUniform, lighting);
             if (lighting) {
                 gl.uniform3f(
-                    shaderProgram.ambientColorUniform,
+                    shaderProgramTexture.ambientColorUniform,
                     parseFloat(document.getElementById("ambientR").value),
                     parseFloat(document.getElementById("ambientG").value),
                     parseFloat(document.getElementById("ambientB").value)
@@ -1128,10 +1128,10 @@
                 var adjustedLD = vec3.create();
                 vec3.normalize(lightingDirection, adjustedLD);
                 vec3.scale(adjustedLD, -1);
-                gl.uniform3fv(shaderProgram.lightingDirectionUniform, adjustedLD);
+                gl.uniform3fv(shaderProgramTexture.lightingDirectionUniform, adjustedLD);
 
                 gl.uniform3f(
-                    shaderProgram.directionalColorUniform,
+                    shaderProgramTexture.directionalColorUniform,
                     parseFloat(document.getElementById("directionalR").value),
                     parseFloat(document.getElementById("directionalG").value),
                     parseFloat(document.getElementById("directionalB").value)
@@ -1225,9 +1225,9 @@
     <table style="border: 0; padding: 10px;">
         <tr>
             <td><b>Colour:</b>
-            <td>R: <input type="text" id="ambientR" value="0.2" />
-            <td>G: <input type="text" id="ambientG" value="0.2" />
-            <td>B: <input type="text" id="ambientB" value="0.2" />
+            <td>R: <input type="text" id="ambientR" value="0.5" />
+            <td>G: <input type="text" id="ambientG" value="0.5" />
+            <td>B: <input type="text" id="ambientB" value="0.5" />
         </tr>
     </table>
 
