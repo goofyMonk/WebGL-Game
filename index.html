@@ -369,18 +369,34 @@
 
     }
 
-    //Position Buffers
-    var cubeVertexPositionBuffer;
+
+
+    //Buffer Variables
+    var bottomCubeVertexPositionBuffer;
+    var bottomCubeVertexNormalBuffer;
+    var bottomCubeVertexIndexBuffer;
+    var bottomCubeVertexColorBuffer;
+
+    var topCubeVertexPositionBuffer;
+    var topCubeVertexNormalBuffer;
+    var topCubeVertexIndexBuffer;
+    var topCubeVertexColorBuffer;
+
+    var wheelVertexPositionBuffer;
+    var wheelVertexNormalBuffer;
+    var wheelVertexIndexBuffer;
+    var wheelVertexColorBuffer;
+
     var wallVertexPositionBuffer;
-    var floorVertexPositionBuffer;
-
-    //Color Buffers
-    var cubeVertexColorBuffer;
-
-
-    //Texture Buffers
+    var wallVertexNormalBuffer;
+    var wallVertexIndexBuffer;
     var wallVertexTextureCoordBuffer;
+
+    var floorVertexPositionBuffer;
+    var floorVertexNormalBuffer;
+    var floorVertexIndexBuffer;
     var floorVertexTextureCoordBuffer;
+
 
     function initBuffers() {
 
@@ -1032,10 +1048,10 @@
         gl.bindBuffer(gl.ARRAY_BUFFER, floorVertexPositionBuffer);
         var vertices = [
             // Floor
-            -30.0, 0.0, -30.0,
-            30.0, 0.0, -30.0,
-            30.0, 0.0, 30.0,
-            -30.0, 0.0, 30.0,
+            -30.0, -1.0, -30.0,
+            30.0, -1.0, -30.0,
+            30.0, -1.0, 30.0,
+            -30.0, -1.0, 30.0,
 
         ];
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
