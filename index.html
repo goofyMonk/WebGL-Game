@@ -625,10 +625,10 @@
              0.0, -1.0,  0.0,
 
             // Right face
-             1.0,  0.0,  0.0,
-             1.0,  0.0,  0.0,
-             1.0,  0.0,  0.0,
-             1.0,  0.0,  0.0,
+             0.8,  0.6,  0.0,
+             0.8,  0.6,  0.0,
+             0.8,  0.6,  0.0,
+             0.8,  0.6,  0.0,
 
             // Left face
             -1.0,  0.0,  0.0,
@@ -1376,7 +1376,7 @@
             gl.uniform1i(shaderProgram.useLightingUniform, lighting);
 
             if (lighting) {
-                //Lighting for Texture Shaders
+                //Lighting for Color Shaders
                 gl.uniform3f(
                     shaderProgram.ambientColorUniform,
                     parseFloat(document.getElementById("ambientR").value),
@@ -1581,7 +1581,7 @@
     </ul>
 
     <br>
-    <input type="checkbox" id="lighting" checked /> Use lighting
+    <input type="checkbox" id="lighting" checked /> Use Lambertian lighting
     <br/>
    <br/>
     <h2>Directional light:</h2>
