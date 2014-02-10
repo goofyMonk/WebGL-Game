@@ -351,7 +351,7 @@
         //Lighting
         //Transform normals _ Use transported inverse of top-left 3x3 mvMatrix
         var normalMatrix = mat3.create();
-        mat4.toInverseMat3(mvMatrix, normalMatrix);
+        mat4.toInverseMat3(currentMvMatrix, normalMatrix);
         mat3.transpose(normalMatrix);
         gl.uniformMatrix3fv(shaderProgram.nMatrixUniform, false, normalMatrix);
     }
@@ -363,7 +363,7 @@
         //Lighting
         //Transform normals _ Use transported inverse of top-left 3x3 mvMatrix
         var normalMatrix = mat3.create();
-        mat4.toInverseMat3(mvMatrix, normalMatrix);
+        mat4.toInverseMat3(currentMvMatrix, normalMatrix);
         mat3.transpose(normalMatrix);
         gl.uniformMatrix3fv(shaderProgramTexture.nMatrixUniform, false, normalMatrix);
 
@@ -1449,9 +1449,8 @@
             setMatrixUniformsTexture(mvMatrix);
             //setMatrixUniforms(mvMatrix);
             gl.drawElements(gl.TRIANGLES, wallVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-        
+        mvPopMatrix();
 
-            mvPopMatrix();
 
         // floor
         mvPushMatrix();
